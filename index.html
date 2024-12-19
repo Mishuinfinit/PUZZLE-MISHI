@@ -69,6 +69,9 @@ const imageInput = document.getElementById('imageInput');
 const gridSize = 3; // Tamaño de la cuadrícula (3x3)
 let pieces = [];
 
+// Imagen por defecto
+const defaultImageUrl = 'https://www.bing.com/ck/a?!&&p=1b0b9e113f0037b5e02f33f5f0b9aec8f505d2b2183ec02929199809998069a9JmltdHM9MTczNDQ4MDAwMA&ptn=3&ver=2&hsh=4&fclid=1eff3810-8ffe-6129-0473-2d558e5b600a&psq=gato&u=a1aHR0cHM6Ly9lcy53aWtpcGVkaWEub3JnL3dpa2kvRmVsaXNfc2lsdmVzdHJpc19jYXR1cyNDYXJhY3RlcsOtc3RpY2FzX2dlbsOpdGljYXM&ntb=1';
+
 // Manejar la carga de la imagen
 imageInput.addEventListener('change', (event) => {
     const file = event.target.files[0];
@@ -189,6 +192,9 @@ function shufflePuzzle() {
     });
     winMessage.style.display = 'none';
 }
+
+// Crear el rompecabezas inicial con la imagen por defecto
+createPuzzle(defaultImageUrl);
 </script>
 </body>
 </html>
