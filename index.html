@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <base href="." target="_blank">
     <style>
         .puzzle-container {
             width: 400px;
@@ -23,24 +22,11 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 24px;
-            font-weight: bold;
             user-select: none;
             position: relative;
             overflow: hidden;
-            background-image: url('https://th.bing.com/th/id/OIP.dXTtlmtrfQGK1oyKJwolzQHaE8?rs=1&pid=ImgDetMain');
-            background-size: 400px 400px;
+            background-size: 400px 400px; /* Tamaño de la imagen completa */
         }
-
-        .puzzle-piece:nth-child(1) { background-position: 0 0; }
-        .puzzle-piece:nth-child(2) { background-position: -133.33px 0; }
-        .puzzle-piece:nth-child(3) { background-position: -266.66px 0; }
-        .puzzle-piece:nth-child(4) { background-position: 0 -133.33px; }
-        .puzzle-piece:nth-child(5) { background-position: -133.33px -133.33px; }
-        .puzzle-piece:nth-child(6) { background-position: -266.66px -133.33px; }
-        .puzzle-piece:nth-child(7) { background-position: 0 -266.66px; }
-        .puzzle-piece:nth-child(8) { background-position: -133.33px -266.66px; }
-        .puzzle-piece:nth-child(9) { background-position: -266.66px -266.66px; }
 
         .win-message {
             text-align: center;
@@ -68,33 +54,65 @@
     </style>
 </head>
 <body>
-<div class="puzzle-container" id="puzzleContainer">
-    <div class="puzzle-piece" id="piece1"></div>
-    <div class="puzzle-piece" id="piece2"></div>
-    <div class="puzzle-piece" id="piece3"></div>
-    <div class="puzzle-piece" id="piece4"></div>
-    <div class="puzzle-piece" id="piece5"></div>
-    <div class="puzzle-piece" id="piece6"></div>
-    <div class="puzzle-piece" id="piece7"></div>
-    <div class="puzzle-piece" id="piece8"></div>
-    <div class="puzzle-piece" id="piece9"></div>
+<div>
+    <label for="imageInput">Selecciona una imagen:</label>
+    <input type="file" id="imageInput" accept="image/*" />
 </div>
+<div class="puzzle-container" id="puzzleContainer"></div>
 <div class="win-message" id="winMessage">¡Felicidades! ¡Completaste el rompecabezas!</div>
 <button onclick="shufflePuzzle()">Barajar Piezas</button>
 
 <script>
 const puzzleContainer = document.getElementById('puzzleContainer');
-const pieces = Array.from(document.querySelectorAll('.puzzle-piece'));
 const winMessage = document.getElementById('winMessage');
+const imageInput = document.getElementById('imageInput');
+const gridSize = 3; // Tamaño de la cuadrícula (3x3)
+let pieces = [];
+
+// Manejar la carga de la imagen
+imageInput.addEventListener('change', (event) => {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const imageUrl = e.target.result;
+            createPuzzle(imageUrl);
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+function createPuzzle(imageUrl) {
+    // Limpiar el contenedor
+    puzzleContainer.innerHTML = '';
+    pieces = [];
+
+    // Crear las piezas
+    for (let row = 0; row < gridSize; row++) {
+        for (let col = 0; col < gridSize; col++) {
+            const piece = document.createElement('div');
+            piece.className = 'puzzle-piece';
+            piece.style.backgroundImage = `url(${imageUrl})`;
+            piece.style.backgroundPosition = `${-col * (400 / gridSize)}px ${-row * (400 / gridSize)}px`;
+            piece.style.width = `${400 / gridSize}px`;
+            piece.style.height = `${400 / gridSize}px`;
+            piece.dataset.row = row;
+            piece.dataset.col = col;
+
+            piece.addEventListener('touchstart', touchStart);
+            piece.addEventListener('touchmove', touchMove);
+            piece.addEventListener('touchend', touchEnd);
+
+            puzzleContainer.appendChild(piece);
+            pieces.push(piece);
+        }
+    }
+
+    shufflePuzzle();
+}
+
 let draggedPiece = null;
 let offsetX, offsetY;
-
-// Agregar eventos táctiles
-pieces.forEach(piece => {
-    piece.addEventListener('touchstart', touchStart);
-    piece.addEventListener('touchmove', touchMove);
-    piece.addEventListener('touchend', touchEnd);
-});
 
 function touchStart(e) {
     draggedPiece = e.target;
@@ -129,7 +147,6 @@ function touchEnd(e) {
     });
 
     if (closestPiece && closestPiece !== draggedPiece) {
-        // Intercambiar posiciones de las piezas
         const draggedPosition = { left: draggedPiece.style.left, top: draggedPiece.style.top };
         draggedPiece.style.left = closestPiece.style.left;
         draggedPiece.style.top = closestPiece.style.top;
@@ -144,11 +161,11 @@ function touchEnd(e) {
 }
 
 function checkWin() {
-    const isWin = pieces.every((piece, index) => {
+    const isWin = pieces.every(piece => {
         const rect = piece.getBoundingClientRect();
         const containerRect = puzzleContainer.getBoundingClientRect();
-        const expectedLeft = (index % 3) * 133.33 + containerRect.left;
-        const expectedTop = Math.floor(index / 3) * 133.33 + containerRect.top;
+        const expectedLeft = piece.dataset.col * (400 / gridSize) + containerRect.left;
+        const expectedTop = piece.dataset.row * (400 / gridSize) + containerRect.top;
         return (
             Math.abs(rect.left - expectedLeft) < 10 &&
             Math.abs(rect.top - expectedTop) < 10
@@ -172,9 +189,6 @@ function shufflePuzzle() {
     });
     winMessage.style.display = 'none';
 }
-
-// Barajar al inicio
-shufflePuzzle();
 </script>
 </body>
 </html>
